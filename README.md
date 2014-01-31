@@ -1,4 +1,4 @@
-james.py - Chief CLI.
+Card Against Hamper - An IRC game.
 
 INSTALL
 =======
