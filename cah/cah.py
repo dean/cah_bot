@@ -298,7 +298,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             print groups
 
             try:
-                indices = map(int, groups)
+                indices = map(int, groups[0].split(" "))
             except:
                 return bot.reply(comm, "{0}, you didn't provide hand index(s) for cards!"
                             .format(user))
