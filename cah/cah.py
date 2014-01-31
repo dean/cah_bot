@@ -44,8 +44,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     avail_players = []
     answers= defaultdict(list)
 
-
-
     already_in = "{0}, you are already a part of the game!"
     not_in = "{0}, you are not a part of the game!"
 
@@ -121,6 +119,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.prep_play(bot, comm)
         else:
             self.state = "join"
+            bot.reply(comm, self.plugin.current_players())
 
     def prep_play(self, bot, comm):
         self.state = "play"
@@ -235,7 +234,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 else:
                     bot.reply(comm, "[*] {0} has joined the game! Waiting for "
                                 "{1} more player(s).".format(
-                                    user, 3 - len(self.players)))
+                                    user, 3 - len(self.plugin.players)))
             else:
                 bot.reply(comm, "[*] {0} has joined the queue!".format(user))
                 self.plugin.player_queue.append(user)
@@ -257,14 +256,15 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 return self.plugin.not_in.format(user)
 
             self.plugin.remove_player(user)
+            bot.reply(comm, "{0} has left the game!".format(user))
 
             if self.plugin.state == "play":
-                self.plugin.remove_player(user)
-
                 if user in self.plugin.avail_players:
                     self.plugin.avail_players.remove(user)
-                elif (user == self.plugin.dealer or
-                        len(self.plugin.players) < 3):
+                elif user == self.plugin.dealer:
+                    bot.reply(comm, "Game restarting... dealer left.")
+                    self.plugin.reset()
+                elif len(self.plugin.players) < 3:
                     bot.reply(comm, "There are less than 3 players playing "
                                 "now. Waiting for more players...")
                     self.plugin.reset()
@@ -342,11 +342,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             print "intercepted winner command!"
             user = comm['user']
             if self.plugin.state != "winner":
-                return "{0}, it is not time to choose a winner!".format(
-                            comm['user'])
+                return bot.reply(comm, "{0}, it is not time to choose a "
+                            "winner!".format(user))
             elif user != self.plugin.dealer:
-                return "{0}, you may not choose the winner!".format(
-                            comm['user'])
+                return bot.reply(comm, "{0}, you may not choose the winner! "
+                                    .format(user))
 
             winner_re = r'^winner (\d)'
             winner_ind = int(re.match(winner_re, comm['message'], re.S).group(1))
@@ -356,7 +356,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 if i == winner_ind:
                     winner = player
             if not winner:
-                return "{0}, that answer doesn't exist!".format(user)
+                return bot.reply(comm, "{0}, that answer doesn't exist!"
+                            .format(user))
 
             bot.reply(comm, "{0}, you won this round! Congrats!".format(winner))
 
