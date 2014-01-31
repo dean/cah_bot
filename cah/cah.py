@@ -263,15 +263,15 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     self.plugin.avail_players.remove(user)
                 elif user == self.plugin.dealer:
                     bot.reply(comm, "Game restarting... dealer left.")
-                    self.plugin.reset()
+                    self.plugin.reset(comm, bot)
                 elif len(self.plugin.players) < 3:
                     bot.reply(comm, "There are less than 3 players playing "
                                 "now. Waiting for more players...")
-                    self.plugin.reset()
+                    self.plugin.reset(comm, bot)
             elif self.plugin.state == "winner":
                 if user == self.plugin.dealer:
                     bot.reply(comm, "Game restarting... Dealer left.")
-                    self.plugin.reset()
+                    self.plugin.reset(comm, bot)
 
             bot.reply(comm, self.plugin.current_players())
 
