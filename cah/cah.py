@@ -371,7 +371,7 @@ class CardTable(SQLAlchemyBase):
     added through commands in this manner.
     """
 
-    __tablename__ = 'cards'
+    __tablename__ = 'cah_cards'
 
     id = Column(Integer, primary_key=True)
     desc = Column(String)
