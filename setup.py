@@ -6,11 +6,10 @@ with open('requirements.txt') as f:
 setup(
     name='cah',
     version='0.1',
-    modules=['cah'],
-    scripts=['cah/cah.py'],
+    packages=['cah'],
     author='Dean Johnson',
     author_email='deanjohnson222@gmail.com',
     url='https://github.com/johnsdea/cah_bot',
     install_requires=requirements,
-    package_data={'cah': ['requirements.txt', 'README', 'LICENSE']}
+    package_data={'cah': ['requirements.txt', 'README.md', 'LICENSE']}
 )
