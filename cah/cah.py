@@ -62,7 +62,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         self.whites = ct.filter_by(color="white").all()
         self.blacks = ct.filter_by(color="black").all()
 
-        random.seed(0)
+        random.seed()
 
         random.shuffle(self.whites) # Erry' day I'm shufflin'!
         random.shuffle(self.blacks)
@@ -122,7 +122,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.prep_play(bot, comm)
         else:
             self.state = "join"
-            bot.reply(comm, self.plugin.current_players())
 
     def prep_play(self, bot, comm):
         self.state = "play"
@@ -273,17 +272,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     self.plugin.avail_players.remove(user)
                 elif user == self.plugin.dealer:
                     bot.reply(comm, "Game restarting... dealer left.")
-                    self.plugin.reset(comm, bot)
+                    self.plugin.reset(bot, comm)
 
                 if len(self.plugin.players) < 3:
                     bot.reply(comm, "There are less than 3 players playing "
                                 "now. Waiting for more players...")
-                    self.plugin.reset(comm, bot)
+                    self.plugin.reset(bot, comm)
 
             elif self.plugin.state == "winner":
                 if user == self.plugin.dealer:
                     bot.reply(comm, "Game restarting... Dealer left.")
-                    self.plugin.reset(comm, bot)
+                    self.plugin.reset(bot, comm)
 
             bot.reply(comm, self.plugin.current_players())
 
@@ -339,7 +338,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     text = text + "." if not text.endswith(".") else text
                     bot.reply(comm, text)
                 bot.reply(comm, "{0}, please choose a winner with "
-                            "\"winner <answer #>\".".format(self.plugin.dealer))
+                            "\"!winner <answer #>\".".format(self.plugin.dealer))
                 self.plugin.state = "winner"
 
     class Winner(Command):
