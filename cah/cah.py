@@ -26,7 +26,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     long_desc = ('!join - Joins the game.\n'
                  '!leave - Leaves the game.\n'
                  '!play <card #> - Plays a card. May play more than one.\n'
-                 '!winner <answer #> - Chooses a winner for a given prompt.
+                 '!winner <answer #> - Chooses a winner for a given prompt.'
                  '!mystatus - Shows information about yourself.')
 
     player_queue = []
@@ -381,21 +381,26 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         def command(self, bot, comm, groups):
             print "intercepted winner command!"
             user = comm['user']
-            msg = "{0}\nScore: {1}\nPlaying: {2}\nDealer: {3}\nHand: [{4}]"
+            msg = ["{0}", "Score: {0}", "Playing: {0}", "Dealer: {0}",
+                    "Hand: [{0}]"]
 
             score = 0
-            player = self.plugin.db.session.query(CAHable).filter_by(user=user)
-                        .first()
+            player = self.plugin.db.session.query(CAHTable).filter_by(user=user
+                        ).first()
             if player:
                 score = player.score
 
             playing = "Yes" if user in self.plugin.players else "No"
             dealer = "Yes" if user == self.plugin.dealer else "No"
-            hand = '. '.join((str(x + 1) + ": " + self.players[name][x].desc.encode('utf-8')
-                                for x in xrange(self.NUM_CARDS)))
+            hand = "None"
+            if user in self.plugin.players:
+                hand = '. '.join((str(x + 1) + ": " + self.plugin.players[user][x]
+                    .desc.encode('utf-8') for x in xrange(self.plugin.NUM_CARDS)))
 
-            bot.notice(self, msg.format(score, playing, dealer, hand))
-
+            # Since we can't print new lines...
+            msgs = zip(msg, [user, score, playing, dealer, hand])
+            for msg, value in msgs:
+                bot.notice(user, msg.format(value))
 
 
 class CardTable(SQLAlchemyBase):
