@@ -210,6 +210,10 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         players = ', '.join(p for p in self.players) + '.'
         return "[*] Current players: " + players
 
+    def queued_players(self):
+        players = ', '.join(p for p in self.player_queue) + '.'
+        return "[*] Queued Players: " + players
+
     class Join(Command):
         """ Join/Queue up for a game """
 
@@ -381,7 +385,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         long_desc = 'Shows information about yourself regarding the game.'
 
         def command(self, bot, comm, groups):
-            print "intercepted winner command!"
+            print "intercepted mystatus command!"
             user = comm['user']
             msg = ["{0}", "Score: {0}", "Playing: {0}", "Dealer: {0}",
                     "Hand: [{0}]"]
@@ -403,6 +407,21 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             msgs = zip(msg, [user, score, playing, dealer, hand])
             for msg, value in msgs:
                 bot.notice(user, msg.format(value))
+
+    class Players(Command):
+        name = 'players'
+        regex = r'^players'
+
+        short_desc = '!players - Shows the current players.'
+        long_desc = 'Shows players playing, and in the queue.'
+
+        def command(self, bot, comm, groups):
+            print "intercepted players command"
+            user = comm['user']
+
+            bot.reply(comm, self.plugin.current_players())
+            bot.reply(comm, self.plugin.queued_players())
+
 
 
 class CardTable(SQLAlchemyBase):
