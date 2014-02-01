@@ -134,8 +134,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         self.avail_players = [p for p in self.players if p != self.dealer]
 
         bot.reply(comm, "[*] {0} reads: {1}".format(self.dealer, self.prompt))
-        bot.reply(comm, "[*] Type: \"play <card #>\" to fill blanks. Multiple "
-                        "cards are played with \"play <card #> <card #>\".")
+        bot.reply(comm, "[*] Type: \"!play <card #>\" to fill blanks. Multiple "
+                        "cards are played with \"!play <card #> <card #>\".")
 
         for p in self.players:
             self.deal(p)
@@ -262,6 +262,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
             if self.plugin.state == "play":
                 if user in self.plugin.avail_players:
+                    if user in self.plugin.answers:
+                        self.plugin.white_discard += self.plugin.answers[user]
+                        del(self.plugin.answers[user])
                     self.plugin.avail_players.remove(user)
                 elif user == self.plugin.dealer:
                     bot.reply(comm, "Game restarting... dealer left.")
