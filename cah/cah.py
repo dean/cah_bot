@@ -201,7 +201,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         cards = '. '.join((str(x + 1) + ": " + self.players[name][x].desc.encode('utf-8')
                             for x in xrange(self.NUM_CARDS)))
 
-        bot.notice(name, "Your hand is: \n[" + cards + "]")
+        bot.notice(name, "Your hand is: [" + cards + "]")
 
     def current_players(self):
         players = ', '.join(p for p in self.players) + '.'
