@@ -61,6 +61,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         self.whites = ct.filter_by(color="white").all()
         self.blacks = ct.filter_by(color="black").all()
 
+        random.seed(0)
+
         random.shuffle(self.whites) # Erry' day I'm shufflin'!
         random.shuffle(self.blacks)
 
@@ -107,7 +109,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             random.shuffle(self.whites)
             self.white_discards = []
 
-        # Fill up dealer_queue 
+        # Fill up dealer_queue
         if len(self.dealer_queue) < len(self.players):
             self.dealer_queue += [p for p in self.players]
 
@@ -367,7 +369,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
 class CardTable(SQLAlchemyBase):
     """
-    This is only for persistant storage of all cards. More can also be 
+    This is only for persistant storage of all cards. More can also be
     added through commands in this manner.
     """
 
