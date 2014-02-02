@@ -190,18 +190,19 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     def format_white(self, card):
         card = card.strip("\n")
-        if card.endswith("."):
-            card = card[:-1]
-        return card
+        if card:
+            if card.endswith("."):
+                card = card[:-1]
+            return card
 
     def init_black(self, card):
         card = card.strip("\n")
-        if "__________" not in card:
-            card += " __________."
-        return ''.join(map(self.colorize, re.split("(" + '_'*10 + ")", card)))
+        if card:
+            if "__________" not in card:
+                card += " __________."
+            return ''.join(map(self.colorize, re.split("(" + '_'*10 + ")", card)))
 
     def format_black(self, card):
-        card.strip("\n")
         for x in xrange(card.count("__________")):
             card = card.replace("__________", "{" + str(x) + "}", 1)
         return card
