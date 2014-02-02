@@ -70,6 +70,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     def remove_player(self, player):
         # Return cards to discard
         self.white_discard += self.players[player]
+
         # Remove player
         del(self.players[player])
         while player in self.dealer_queue:
@@ -144,6 +145,13 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         for p in self.avail_players:
             self.show_hand(bot, p)
 
+    def colorize(self, txt):
+        if txt == '_' * 10:
+            # Returns the light cyan color code
+            return "\x0311" + txt + "\x03"
+        # Returns the light green color code
+        return "\x0309" + txt + "\x03"
+
     def show_top_scores(self, bot, comm, current_players=True):
         if current_players:
             top = self.db.session.query(CAHTable).filter(
@@ -190,7 +198,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         card = card.strip("\n")
         if "__________" not in card:
             card += " __________."
-        return card
+        return ''.join(map(self.colorize, re.split("(" + '_'*10 + ")", card)))
 
     def format_black(self, card):
         card.strip("\n")
@@ -335,7 +343,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                             self.plugin.format_black(self.plugin.prompt).format(
                                 *self.plugin.answers[self.plugin.avail_players[x]]
                             ))
-                    text = text + "." if not text.endswith(".") else text
                     bot.reply(comm, text)
                 bot.reply(comm, "{0}, please choose a winner with "
                             "\"!winner <answer #>\".".format(self.plugin.dealer))
