@@ -181,10 +181,12 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         blacks_txt = urllib2.urlopen(url + "blacks.txt").read().split("\n")
         new_whites = map(self.format_white, whites_txt)
         for white in new_whites:
-            self.db.session.add(CardTable(unicode(white, 'utf-8'), "white"))
+            if white:
+                self.db.session.add(CardTable(unicode(white, 'utf-8'), "white"))
         new_blacks = map(self.init_black, blacks_txt)
         for black in new_blacks:
-            self.db.session.add(CardTable(unicode(black, 'utf-8'), "black"))
+            if black:
+                self.db.session.add(CardTable(unicode(black, 'utf-8'), "black"))
 
         self.db.session.commit()
 
