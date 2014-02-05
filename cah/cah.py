@@ -343,12 +343,13 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
             if len(self.plugin.answers) == len(self.plugin.avail_players):
                 bot.reply(comm, "[*] All players have turned in their cards.")
-                for x in xrange(len(self.plugin.avail_players)):
-                    text = ("[*] [Answer #" + str(x) + "]: " +
-                            self.plugin.format_black(self.plugin.prompt).format(
-                                *self.plugin.answers[self.plugin.avail_players[x]]
-                            ))
+                
+                for i, player in enumerate(random.shuffle(self.plugin.avail_players)):
+                    prompt = self.plugin.format_black(self.plugin.prompt)
+                    cards = prompt.format(*self.plugin.answers[player])
+                    text = ("[*] [Answer #{0}]: {1}".format(i, cards)
                     bot.reply(comm, text)
+                    
                 bot.reply(comm, "{0}, please choose a winner with "
                             "\"!winner <answer #>\".".format(self.plugin.dealer))
                 self.plugin.state = "winner"
