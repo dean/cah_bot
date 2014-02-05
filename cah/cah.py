@@ -73,6 +73,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         # Remove player
         del(self.players[player])
+        if player in self.player_queue:
+            self.player_queue.remove(player)
         while player in self.dealer_queue:
             self.dealer_queue.remove(player)
 
