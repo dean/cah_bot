@@ -261,6 +261,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         bot.notice(name, "Your hand is: [" + cards + "]")
 
+    def show_answers(self, bot, comm):
+        for i, player in enumerate(self.avail_players):
+            prompt = self.format_black(self.prompt)
+            cards = prompt.format(*self.answers[player])
+            text = ("[*] [Answer #{0}]: {1}".format(i + 1, cards))
+            bot.reply(comm, text)
+
+        bot.reply(comm, "{0}, please choose a winner with "
+                    "\"!winner <answer #>\".".format(self.dealer))
+
+
     def current_players(self):
         players = ', '.join(p for p in self.players) + '.'
         return "[*] Current players: " + players
@@ -363,14 +374,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             if len(self.plugin.answers) == len(self.plugin.avail_players):
                 bot.reply(comm, "[*] All players have turned in their cards.")
                 random.shuffle(self.plugin.avail_players)
-                for i, player in enumerate(self.plugin.avail_players):
-                    prompt = self.plugin.format_black(self.plugin.prompt)
-                    cards = prompt.format(*self.plugin.answers[player])
-                    text = ("[*] [Answer #{0}]: {1}".format(i + 1, cards))
-                    bot.reply(comm, text)
-
-                bot.reply(comm, "{0}, please choose a winner with "
-                            "\"!winner <answer #>\".".format(self.plugin.dealer))
+                self.plugin.show_answers(bot, comm)
                 self.plugin.state = "winner"
 
     class Winner(Command):
@@ -527,6 +531,40 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
             return bot.reply(comm, 'Card: {0} Color: {1} added to db!'.format(
                         desc, color))
+
+    class Poke(Command):
+        name = 'poke'
+        regex = r'^poke (.+)'
+
+        short_desc = '!poke - Pokes a player with a short reminder.'
+
+        def command(self, bot, comm, groups):
+            print "intercepted poke command"
+
+            # Get rid of trailing whitespace.
+            target = groups[0].strip()
+
+            if target not in self.plugin.players:
+                return bot.reply(comm, 'That player is not playing right now!')
+            elif target == comm['user']:
+                return bot.reply(comm, 'Why are you poking yourself?')
+            if target == self.plugin.dealer:
+                if self.plugin.state != 'winner':
+                    return bot.reply(comm, 'The dealer doesn\'t need to do '
+                                     'anything right now.')
+                self.plugin.show_answers(bot, comm)
+            else:
+                if self.plugin.state == 'play':
+                    if target not in self.plugin.answers:
+                        bot.notice(target, 'Please play a card.')
+                        self.plugin.show_hand(bot, target)
+                    else:
+                        return bot.reply(comm, '{0} has already played their '
+                                         'cards!'.format(target))
+                else:
+                    return bot.reply(comm, 'Players do not need to do anything'
+                                     ' right now.')
+
 
 
 class CardTable(SQLAlchemyBase):
