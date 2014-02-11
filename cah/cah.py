@@ -326,8 +326,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 return self.plugin.not_in.format(user)
             elif user == self.plugin.dealer:
                 return bot.reply(comm, "{0}, you are the dealer!".format(user))
-            elif user in self.plugin.answers:
-                return bot.reply(comm, "{0}, you already submitted your cards!".format(user))
 
             try:
                 indices = map(int, groups[0].split(" "))
@@ -339,12 +337,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 return ("{0}, you didn't provide the correct amount"
                             "of cards!".format(user))
 
+            if user in self.plugin.answers:
+                self.plugin.players[user] += self.plugin.answers[user]
+                del(self.plugin.answers[user])
+
             self.plugin.answers[user] = [uen(self.plugin.players[user][i - 1])
                                     for i in indices]
 
             # Don't change index of cards that are being removed..
             for index in reversed(sorted(indices, key=lambda x: x)):
                 self.plugin.players[user].pop(index - 1)
+
 
             if len(self.plugin.answers) == len(self.plugin.avail_players):
                 bot.reply(comm, "[*] All players have turned in their cards.")
@@ -415,7 +418,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             hand = "None"
             if user in self.plugin.players:
                 hand = '. '.join((str(x + 1) + ": " + uen(self.plugin.players[user][x])
-                    for x in xrange(self.plugin.NUM_CARDS)))
+                    for x in xrange(len(self.plugin.players[user]))))
 
             # Since we can't print new lines...
             msgs = zip(msg, [user, score, playing, dealer, hand])
