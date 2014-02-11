@@ -465,7 +465,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             # kicked
             if ((num_votes/float(num_voters)) * 100 ) > 70:
                 self.plugin.remove_player(bot, comm, target)
-                bot.reply(comm, "{0} has been kicked from the game!".format(user))
+                bot.reply(comm, "{0} has been kicked from the game!".format(target))
 
 
 class CardTable(SQLAlchemyBase):
