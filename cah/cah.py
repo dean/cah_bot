@@ -44,6 +44,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     #it is inefficient to build this list everytime we need it.
     avail_players = []
     answers= defaultdict(list)
+    kick_votes = defaultdict(list)
 
     already_in = "{0}, you are already a part of the game!"
     not_in = "{0}, you are not a part of the game!"
@@ -69,18 +70,45 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         random.shuffle(self.whites) # Erry' day I'm shufflin'!
         random.shuffle(self.blacks)
 
-    def remove_player(self, player):
+    def remove_player(self, bot, comm, player):
         # Return cards to discard
         self.white_discard += self.players[player]
 
         # Remove player
         del(self.players[player])
+        del(self.kick_votes[player])
+
         if player in self.player_queue:
             print self.player_queue
             self.player_queue.remove(player)
             print self.player_queue
+
         while player in self.dealer_queue:
             self.dealer_queue.remove(player)
+
+        if self.state == "play":
+            if player in self.avail_players:
+                if player in self.answers:
+                    self.white_discard += self.answers[player]
+                    del(self.answers[player])
+                self.avail_players.remove(player)
+            elif player == self.dealer:
+                bot.reply(comm, "Game restarting... dealer left.")
+                self.reset(bot, comm)
+
+            if len(self.players) < 3:
+                bot.reply(comm, "There are less than 3 players playing "
+                            "now. Waiting for more players...")
+                self.reset(bot, comm)
+
+        elif self.state == "winner":
+            if player == self.dealer:
+                bot.reply(comm, "Game restarting... Dealer left.")
+                self.reset(bot, comm)
+
+        bot.reply(comm, self.current_players())
+
+
 
     def give_point(self, user):
         winner = self.db.session.query(CAHTable).filter_by(user=user).first()
@@ -105,6 +133,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 self.white_discard.append(c)
 
         self.answers.clear()
+        self.kick_votes.clear()
 
         # Put discards back in deck
         if len(self.black_discard) > len(self.blacks) * 2:
@@ -278,30 +307,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     user not in self.plugin.player_queue):
                 return self.plugin.not_in.format(user)
 
-            self.plugin.remove_player(user)
             bot.reply(comm, "{0} has left the game!".format(user))
-
-            if self.plugin.state == "play":
-                if user in self.plugin.avail_players:
-                    if user in self.plugin.answers:
-                        self.plugin.white_discard += self.plugin.answers[user]
-                        del(self.plugin.answers[user])
-                    self.plugin.avail_players.remove(user)
-                elif user == self.plugin.dealer:
-                    bot.reply(comm, "Game restarting... dealer left.")
-                    self.plugin.reset(bot, comm)
-
-                if len(self.plugin.players) < 3:
-                    bot.reply(comm, "There are less than 3 players playing "
-                                "now. Waiting for more players...")
-                    self.plugin.reset(bot, comm)
-
-            elif self.plugin.state == "winner":
-                if user == self.plugin.dealer:
-                    bot.reply(comm, "Game restarting... Dealer left.")
-                    self.plugin.reset(bot, comm)
-
-            bot.reply(comm, self.plugin.current_players())
+            self.plugin.remove_player(bot, comm, user)
 
     class Play(Command):
         name = 'play'
@@ -374,12 +381,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             winner_re = r'^winner (\d)'
             winner_ind = int(re.match(winner_re, comm['message'], re.S).group(1))
             winner = ""
-            try:
-                winner = self.plugin.avail_players[winner_ind - 1]
-            except:
+            if winner_ind not in xrange(1, len(self.plugin.answers) + 1):
                 return bot.reply(comm, "{0}, that answer doesn't exist!"
                             .format(user))
 
+            winner = self.plugin.avail_players[winner_ind - 1]
             bot.reply(comm, "{0}, you won this round! Congrats!".format(winner))
 
             self.plugin.give_point(winner)
@@ -431,6 +437,36 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             bot.reply(comm, self.plugin.current_players())
             bot.reply(comm, self.plugin.queued_players())
 
+    class Kick(Command):
+        name = 'kick'
+        regex = r'^kick (.+)'
+
+        short_desc = '!kick <player_name> Cast a vote to kick a player.'
+        long_desc = ('Vote to kick a player. If 70% or more of the current '
+                     'players vote to kick a player, they should be kicked.')
+
+        def command(self, bot, comm, groups):
+            print "intercepted kick command"
+            user = comm['user']
+            target = groups[0]
+            print target
+
+            if not self.plugin.players.get(target):
+                return bot.reply(comm, "Player '{0}' doesn't exist...".format(target))
+            elif user in self.plugin.kick_votes[target]:
+                return bot.reply(comm, "You already voted to kick this player!")
+            elif user == target:
+                return bot.reply(comm, "You can't kick yourself!")
+
+            self.plugin.kick_votes[target].append(user)
+            num_votes = len(self.plugin.kick_votes[target])
+            num_voters = len(self.plugin.players) - 1
+
+            # if 70% or more of voting players want to kick a player, they are
+            # kicked
+            if ((num_votes/float(num_voters)) * 100 ) > 70:
+                self.plugin.remove_player(bot, comm, target)
+                bot.reply(comm, "{0} has been kicked from the game!".format(user))
 
 
 class CardTable(SQLAlchemyBase):
