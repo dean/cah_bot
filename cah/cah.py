@@ -43,7 +43,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     #it is inefficient to build this list everytime we need it.
     avail_players = []
-    answers= defaultdict(list)
+    answers = defaultdict(list)
     kick_votes = defaultdict(list)
 
     already_in = "{0}, you are already a part of the game!"
@@ -76,12 +76,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         # Remove player
         del(self.players[player])
-        del(self.kick_votes[player])
+        if player in self.kick_votes:
+            del(self.kick_votes[player])
 
         if player in self.player_queue:
-            print self.player_queue
             self.player_queue.remove(player)
-            print self.player_queue
 
         while player in self.dealer_queue:
             self.dealer_queue.remove(player)
