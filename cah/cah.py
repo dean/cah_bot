@@ -342,13 +342,13 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
             if len(self.plugin.answers) == len(self.plugin.avail_players):
                 bot.reply(comm, "[*] All players have turned in their cards.")
-                
-                for i, player in enumerate(random.shuffle(self.plugin.avail_players)):
+                random.shuffle(self.plugin.avail_players)
+                for i, player in enumerate(self.plugin.avail_players):
                     prompt = self.plugin.format_black(self.plugin.prompt)
                     cards = prompt.format(*self.plugin.answers[player])
-                    text = ("[*] [Answer #{0}]: {1}".format(i, cards)
+                    text = ("[*] [Answer #{0}]: {1}".format(i + 1, cards))
                     bot.reply(comm, text)
-                    
+
                 bot.reply(comm, "{0}, please choose a winner with "
                             "\"!winner <answer #>\".".format(self.plugin.dealer))
                 self.plugin.state = "winner"
@@ -374,11 +374,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             winner_re = r'^winner (\d)'
             winner_ind = int(re.match(winner_re, comm['message'], re.S).group(1))
             winner = ""
-            for i, player in enumerate(self.plugin.avail_players):
-                print "%d: %s" % (i, player)
-                if i == winner_ind:
-                    winner = player
-            if not winner:
+            try:
+                winner = self.plugin.avail_players[winner_ind - 1]
+            except:
                 return bot.reply(comm, "{0}, that answer doesn't exist!"
                             .format(user))
 
