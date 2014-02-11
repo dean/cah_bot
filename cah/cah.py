@@ -246,7 +246,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     def show_hand(self, bot, name):
         print "Showing hand for: " + name
         cards = '. '.join((str(x + 1) + ": " + uen(self.players[name][x])
-                            for x in xrange(self.NUM_CARDS)))
+                            for x in xrange(len(self.players[name]))))
 
         bot.notice(name, "Your hand is: [" + cards + "]")
 
@@ -434,7 +434,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         def command(self, bot, comm, groups):
             print "intercepted players command"
-            user = comm['user']
 
             bot.reply(comm, self.plugin.current_players())
             bot.reply(comm, self.plugin.queued_players())
@@ -469,6 +468,16 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             if ((num_votes/float(num_voters)) * 100 ) > 70:
                 self.plugin.remove_player(bot, comm, target)
                 bot.reply(comm, "{0} has been kicked from the game!".format(target))
+
+    class Hand(Command):
+        name = 'hand'
+        regex = r'^hand'
+
+        short_desc = '!hand - Shows your current hand.'
+
+        def command(self, bot, comm, groups):
+            print "intercepted hand command"
+            self.plugin.show_hand(bot, comm['user'])
 
 
 class CardTable(SQLAlchemyBase):
