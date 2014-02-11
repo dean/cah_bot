@@ -110,11 +110,18 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
 
     def give_point(self, user):
-        winner = self.db.session.query(CAHTable).filter_by(user=user).first()
+        player_str = self.get_player_str()
+        winner = self.db.session.query(CAHTable).filter_by(game=player_str,
+                                                      user=user).first()
         try:
             winner.score += 1
         except AttributeError:
-            self.db.session.add(CAHTable(user, score=1))
+            self.db.session.add(CAHTable(user, player_str, score=1))
+
+        for player in self.players:
+            if not self.db.session.query(CAHTable).filter_by(game=player_str, user=player).first():
+                self.db.session.add(CAHTable(user=player, game=player_str))
+
         self.db.session.commit()
 
     def deal(self, user):
@@ -186,15 +193,19 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         # Returns the light green color code
         return "\x0309" + txt + "\x03"
 
+    def get_player_str(self):
+        return ' '.join(sorted(self.players.keys(), key=lambda x: x))
+
     def show_top_scores(self, bot, comm, current_players=True):
         if current_players:
-            top = self.db.session.query(CAHTable).filter(
-                CAHTable.user.in_(self.players)
-            ).order_by(CAHTable.score.desc()).all()
+            player_str = self.get_player_str()
+            print player_str
+            top = self.db.session.query(CAHTable).filter_by(game=player_str).order_by(
+                    CAHTable.score.desc()).all()
         else:
             top = self.db.session.query(CAHTable).order_by(
-                        CAHTable.score.desc().all()
-                    )
+                        CAHTable.score.desc().all())
+
         scores_str = '{:^14} {:^14}\n____________________________'
         bot.reply(comm, scores_str.format('User', 'Score'))
         scores_str = '{:^14}|{:^14}'
@@ -503,16 +514,19 @@ class CardTable(SQLAlchemyBase):
 
 class CAHTable(SQLAlchemyBase):
     """
-    For storing scores for everyone who plays the game.
+    For storing scores on a per player per game basis.
     """
 
     __tablename__ = 'cah'
 
-    user = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    game = Column(String)
+    user = Column(String)
     score = Column(Integer)
 
-    def __init__(self, user, score=0):
+    def __init__(self, user, game, score=0):
         self.user = user
+        self.game = game
         self.score = score
 
     def __repr__(self):
