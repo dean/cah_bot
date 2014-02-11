@@ -59,8 +59,10 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         if ct.count() == 0:
             self.flush_db()
 
-        self.whites = ct.filter_by(color="white").all()
-        self.blacks = ct.filter_by(color="black").all()
+        whites = ct.filter_by(color="white").all()
+        blacks = ct.filter_by(color="black").all()
+        self.whites = [uen(white.desc) for white in whites]
+        self.blacks = [uen(black.desc) for black in blacks]
 
         random.seed()
 
@@ -74,7 +76,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         # Remove player
         del(self.players[player])
         if player in self.player_queue:
+            print self.player_queue
             self.player_queue.remove(player)
+            print self.player_queue
         while player in self.dealer_queue:
             self.dealer_queue.remove(player)
 
@@ -133,7 +137,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.dealer_queue += self.players
 
         self.dealer = self.dealer_queue.pop(0)
-        self.prompt = self.blacks.pop(0).desc.encode('utf-8')
+        self.prompt = uen(self.blacks.pop(0))
         self.avail_players = [p for p in self.players if p != self.dealer]
 
         bot.reply(comm, "[*] {0} reads: {1}".format(self.dealer, self.prompt))
@@ -213,7 +217,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     def show_hand(self, bot, name):
         print "Showing hand for: " + name
-        cards = '. '.join((str(x + 1) + ": " + self.players[name][x].desc.encode('utf-8')
+        cards = '. '.join((str(x + 1) + ": " + uen(self.players[name][x])
                             for x in xrange(self.NUM_CARDS)))
 
         bot.notice(name, "Your hand is: [" + cards + "]")
@@ -319,22 +323,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             elif user in self.plugin.answers:
                 return bot.reply(comm, "{0}, you already submitted your cards!".format(user))
 
-            print groups
-
             try:
                 indices = map(int, groups[0].split(" "))
             except:
                 return bot.reply(comm, "{0}, you didn't provide hand index(s) for cards!"
                             .format(user))
 
-            print "indices="
-            print indices
-
             if len(indices) != self.plugin.prompt.count("__________"):
                 return ("{0}, you didn't provide the correct amount"
                             "of cards!".format(user))
 
-            self.plugin.answers[user] = [self.plugin.players[user][i - 1].desc.encode('utf-8')
+            self.plugin.answers[user] = [uen(self.plugin.players[user][i - 1])
                                     for i in indices]
 
             # Don't change index of cards that are being removed..
@@ -411,8 +410,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             dealer = "Yes" if user == self.plugin.dealer else "No"
             hand = "None"
             if user in self.plugin.players:
-                hand = '. '.join((str(x + 1) + ": " + self.plugin.players[user][x]
-                    .desc.encode('utf-8') for x in xrange(self.plugin.NUM_CARDS)))
+                hand = '. '.join((str(x + 1) + ": " + uen(self.plugin.players[user][x])
+                    for x in xrange(self.plugin.NUM_CARDS)))
 
             # Since we can't print new lines...
             msgs = zip(msg, [user, score, playing, dealer, hand])
