@@ -490,6 +490,44 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             print "intercepted hand command"
             self.plugin.show_hand(bot, comm['user'])
 
+    class AddCard(Command):
+        name = 'addcard'
+        regex = r'^addcard \"(.+)\" \"(.+)\"$'
+
+        short_desc = '!addcard - Adds a card to the deck.'
+        long_desc = ('!addcard "Description/Text of card" "color".'
+                     'To indicate the blanks for a black card, use one "_".')
+
+        def command(self, bot, comm, groups):
+            print "intercepted addcard command"
+
+            desc = groups[0]
+            color = groups[1]
+
+            if color not in ['white', 'black']:
+                return bot.reply(comm, "That color card doesn't exist!")
+
+            elif color == 'black':
+                underscore_re = re.compile('(_+)+')
+                formatted, num_replacements = underscore_re.subn('_'*10, desc)
+
+                if num_replacements == 0 or num_replacements > 3:
+                    return bot.reply(comm, "You provided too few or many blanks!")
+
+                desc = unicode(self.plugin.init_black(formatted), 'utf-8')
+                self.plugin.black_discard.append(desc)
+
+            elif color == 'white':
+                desc = unicode(self.plugin.format_white(desc))
+                self.plugin.white_discard.append(desc)
+
+            new_card = CardTable(desc=desc, color=color)
+            self.plugin.db.session.add(new_card)
+            self.plugin.db.session.commit()
+
+            return bot.reply(comm, 'Card: {0} Color: {1} added to db!'.format(
+                        desc, color))
+
 
 class CardTable(SQLAlchemyBase):
     """
