@@ -496,7 +496,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     class AddCard(Command):
         name = 'addcard'
-        regex = r'^addcard \"(.+)\" \"(.+)\"$'
+        regex = r'^addcard \"(.+)\" \"?(.+)\"?$'
 
         short_desc = '!addcard - Adds a card to the deck.'
         long_desc = ('!addcard "Description/Text of card" "color".'
