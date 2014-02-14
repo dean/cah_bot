@@ -7,7 +7,7 @@ from collections import defaultdict
 from hamper.interfaces import ChatCommandPlugin, Command
 from hamper.utils import ude, uen
 
-from sqlalchemy import Column, Integer, String, desc
+from sqlalchemy import Column, Integer, String, Boolean, desc
 from sqlalchemy.ext.declarative import declarative_base
 
 SQLAlchemyBase = declarative_base()
