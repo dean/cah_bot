@@ -54,10 +54,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         self.db = loader.db
         SQLAlchemyBase.metadata.create_all(self.db.engine)
 
+        flush = False
         ct = self.db.session.query(CardTable)
 
         # Update db if it's empty.
-        if ct.count() == 0:
+        if ct.count() == 0 or flush:
             self.flush_db()
 
         whites = ct.filter_by(color="white").all()
@@ -218,7 +219,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         """
         Clear out old cards, and bring in new ones.
         """
-        self.db.session.query(CardTable).delete()
+        self.db.session.query(CardTable).filter_by(official=True).delete()
 
         url = "http://web.engr.oregonstate.edu/~johnsdea/"
 
@@ -525,7 +526,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 desc = unicode(self.plugin.format_white(desc))
                 self.plugin.white_discard.append(desc)
 
-            new_card = CardTable(desc=desc, color=color)
+            new_card = CardTable(desc=desc, color=color, official=False)
             self.plugin.db.session.add(new_card)
             self.plugin.db.session.commit()
 
@@ -578,10 +579,12 @@ class CardTable(SQLAlchemyBase):
     id = Column(Integer, primary_key=True)
     desc = Column(String)
     color = Column(String)
+    official = Column(Boolean)
 
-    def __init__(self, desc, color):
+    def __init__(self, desc, color, official=True):
         self.desc = desc
         self.color = color
+        self.official = offical
 
     def __repr__(self):
         print self.desc
