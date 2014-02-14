@@ -584,7 +584,7 @@ class CardTable(SQLAlchemyBase):
     def __init__(self, desc, color, official=True):
         self.desc = desc
         self.color = color
-        self.official = offical
+        self.official = official
 
     def __repr__(self):
         print self.desc
