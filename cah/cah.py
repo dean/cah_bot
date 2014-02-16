@@ -46,8 +46,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     answers = defaultdict(list)
     kick_votes = defaultdict(list)
 
-    already_in = "{0}, you are already a part of the game!"
-    not_in = "{0}, you are not a part of the game!"
+    already_in = "[*] {0}, you are already a part of the game!"
+    not_in = "[*] {0}, you are not a part of the game!"
 
     def setup(self, loader):
         super(CardsAgainstHumanity, self).setup(loader)
