@@ -173,7 +173,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.dealer_queue += self.players
 
         self.dealer = self.dealer_queue.pop(0)
-        self.prompt = uen(self.blacks.pop(0))
+        self.prompt = self.blacks.pop(0)
         self.avail_players = [p for p in self.players if p != self.dealer]
 
         bot.reply(comm, "[*] {0} reads: {1}".format(self.dealer, self.prompt))
@@ -228,11 +228,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         new_whites = map(self.format_white, whites_txt)
         for white in new_whites:
             if white:
-                self.db.session.add(CardTable(unicode(white, 'utf-8'), "white"))
+                self.db.session.add(CardTable(ude(white), "white"))
         new_blacks = map(self.init_black, blacks_txt)
         for black in new_blacks:
             if black:
-                self.db.session.add(CardTable(unicode(black, 'utf-8'), "black"))
+                self.db.session.add(CardTable(ude(black), "black"))
 
         self.db.session.commit()
 
@@ -257,7 +257,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     def show_hand(self, bot, name):
         print "Showing hand for: " + name
-        cards = '. '.join((str(x + 1) + ": " + uen(self.players[name][x])
+        cards = '. '.join((str(x + 1) + ": " + self.players[name][x]
                             for x in xrange(len(self.players[name]))))
 
         bot.notice(name, "Your hand is: [" + cards + "]")
@@ -364,7 +364,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 self.plugin.players[user] += self.plugin.answers[user]
                 del(self.plugin.answers[user])
 
-            self.plugin.answers[user] = [uen(self.plugin.players[user][i - 1])
+            self.plugin.answers[user] = [self.plugin.players[user][i - 1]
                                     for i in indices]
 
             # Don't change index of cards that are being removed..
@@ -433,7 +433,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             dealer = "Yes" if user == self.plugin.dealer else "No"
             hand = "None"
             if user in self.plugin.players:
-                hand = '. '.join((str(x + 1) + ": " + uen(self.plugin.players[user][x])
+                hand = '. '.join((str(x + 1) + ": " + self.plugin.players[user][x]
                     for x in xrange(len(self.plugin.players[user]))))
 
             # Since we can't print new lines...
@@ -519,11 +519,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 if num_replacements == 0 or num_replacements > 3:
                     return bot.reply(comm, "You provided too few or many blanks!")
 
-                desc = unicode(self.plugin.init_black(formatted), 'utf-8')
+                desc = ude(self.plugin.init_black(formatted))
                 self.plugin.black_discard.append(desc)
 
             elif color == 'white':
-                desc = unicode(self.plugin.format_white(desc))
+                desc = ude(self.plugin.format_white(desc))
                 self.plugin.white_discard.append(desc)
 
             new_card = CardTable(desc=desc, color=color, official=False)
