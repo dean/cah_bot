@@ -5,7 +5,7 @@ import urllib2
 from collections import defaultdict
 
 from hamper.interfaces import ChatCommandPlugin, Command
-from hamper.utils import ude, uen
+from hamper.utils import ude
 
 from sqlalchemy import Column, Integer, String, Boolean, desc
 from sqlalchemy.ext.declarative import declarative_base
@@ -63,8 +63,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         whites = ct.filter_by(color="white").all()
         blacks = ct.filter_by(color="black").all()
-        self.whites = [uen(white.desc) for white in whites]
-        self.blacks = [uen(black.desc) for black in blacks]
+        self.whites = [white.desc for white in whites]
+        self.blacks = [black.desc for black in blacks]
 
         random.seed()
 
