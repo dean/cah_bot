@@ -93,17 +93,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     del(self.answers[player])
                 self.avail_players.remove(player)
             elif player == self.dealer:
-                bot.reply(comm, "Game restarting... dealer left.")
+                bot.reply(comm, "[*] Game restarting... dealer left.")
                 self.reset(bot, comm)
 
             if len(self.players) < 3:
-                bot.reply(comm, "There are less than 3 players playing "
+                bot.reply(comm, "[*] There are less than 3 players playing "
                             "now. Waiting for more players...")
                 self.reset(bot, comm)
 
         elif self.state == "winner":
             if player == self.dealer:
-                bot.reply(comm, "Game restarting... Dealer left.")
+                bot.reply(comm, "[*] Game restarting... Dealer left.")
                 self.reset(bot, comm)
 
         bot.reply(comm, self.current_players())
@@ -269,7 +269,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             text = ("[*] [Answer #{0}]: {1}".format(i + 1, cards))
             bot.reply(comm, text)
 
-        bot.reply(comm, "{0}, please choose a winner with "
+        bot.reply(comm, "[*] {0}, please choose a winner with "
                     "\"!winner <answer #>\".".format(self.dealer))
 
 
@@ -296,7 +296,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             if user in self.plugin.players:
                 return bot.reply(comm, self.plugin.already_in.format(user))
             elif user in self.plugin.player_queue:
-                return bot.reply(comm, '{0}, you are already in the queue!'.format(user))
+                return bot.reply(comm, '[*] {0}, you are already in the queue!'.format(user))
 
             # This is only when the game is first starting.
             if self.plugin.state == "join":
@@ -329,7 +329,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     user not in self.plugin.player_queue):
                 return self.plugin.not_in.format(user)
 
-            bot.reply(comm, "{0} has left the game!".format(user))
+            bot.reply(comm, "[*] {0} has left the game!".format(user))
             self.plugin.remove_player(bot, comm, user)
 
     class Play(Command):
@@ -348,16 +348,16 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             if user not in self.plugin.players:
                 return self.plugin.not_in.format(user)
             elif user == self.plugin.dealer:
-                return bot.reply(comm, "{0}, you are the dealer!".format(user))
+                return bot.reply(comm, "[*] {0}, you are the dealer!".format(user))
 
             try:
                 indices = map(int, groups[0].split(" "))
             except:
-                return bot.reply(comm, "{0}, you didn't provide hand index(s) for cards!"
+                return bot.reply(comm, "[*] {0}, you didn't provide hand index(s) for cards!"
                             .format(user))
 
             if len(indices) != self.plugin.prompt.count("__________"):
-                return ("{0}, you didn't provide the correct amount"
+                return ("[*] {0}, you didn't provide the correct amount"
                             "of cards!".format(user))
 
             if user in self.plugin.answers:
@@ -390,21 +390,21 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             print "intercepted winner command!"
             user = comm['user']
             if self.plugin.state != "winner":
-                return bot.reply(comm, "{0}, it is not time to choose a "
+                return bot.reply(comm, "[*] {0}, it is not time to choose a "
                             "winner!".format(user))
             elif user != self.plugin.dealer:
-                return bot.reply(comm, "{0}, you may not choose the winner! "
+                return bot.reply(comm, "[*] {0}, you may not choose the winner! "
                                     .format(user))
 
             winner_re = r'^winner (\d)'
             winner_ind = int(re.match(winner_re, comm['message'], re.S).group(1))
             winner = ""
             if winner_ind not in xrange(1, len(self.plugin.answers) + 1):
-                return bot.reply(comm, "{0}, that answer doesn't exist!"
+                return bot.reply(comm, "[*] {0}, that answer doesn't exist!"
                             .format(user))
 
             winner = self.plugin.avail_players[winner_ind - 1]
-            bot.reply(comm, "{0}, you won this round! Congrats!".format(winner))
+            bot.reply(comm, "[*] {0}, you won this round! Congrats!".format(winner))
 
             self.plugin.give_point(winner)
             self.plugin.show_top_scores(bot, comm)
@@ -469,11 +469,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             print target
 
             if not self.plugin.players.get(target):
-                return bot.reply(comm, "Player '{0}' doesn't exist...".format(target))
+                return bot.reply(comm, "[*] Player '{0}' doesn't exist...".format(target))
             elif user in self.plugin.kick_votes[target]:
-                return bot.reply(comm, "You already voted to kick this player!")
+                return bot.reply(comm, "[*] You already voted to kick this player!")
             elif user == target:
-                return bot.reply(comm, "You can't kick yourself!")
+                return bot.reply(comm, "[*] You can't kick yourself!")
 
             self.plugin.kick_votes[target].append(user)
             num_votes = len(self.plugin.kick_votes[target])
@@ -517,7 +517,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 formatted, num_replacements = underscore_re.subn('_'*10, desc)
 
                 if num_replacements == 0 or num_replacements > 3:
-                    return bot.reply(comm, "You provided too few or many blanks!")
+                    return bot.reply(comm, "[*] You provided too few or many blanks!")
 
                 desc = ude(self.plugin.init_black(formatted))
                 self.plugin.black_discard.append(desc)
@@ -530,7 +530,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.plugin.db.session.add(new_card)
             self.plugin.db.session.commit()
 
-            return bot.reply(comm, 'Card: {0} Color: {1} added to db!'.format(
+            return bot.reply(comm, '[*] Card: {0} Color: {1} added to db!'.format(
                         desc, color))
 
     class Poke(Command):
@@ -546,24 +546,24 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             target = groups[0].strip()
 
             if target not in self.plugin.players:
-                return bot.reply(comm, 'That player is not playing right now!')
+                return bot.reply(comm, '[*] That player is not playing right now!')
             elif target == comm['user']:
-                return bot.reply(comm, 'Why are you poking yourself?')
+                return bot.reply(comm, '[&] Why are you poking yourself?')
             if target == self.plugin.dealer:
                 if self.plugin.state != 'winner':
-                    return bot.reply(comm, 'The dealer doesn\'t need to do '
+                    return bot.reply(comm, '[*] The dealer doesn\'t need to do '
                                      'anything right now.')
                 self.plugin.show_answers(bot, comm)
             else:
                 if self.plugin.state == 'play':
                     if target not in self.plugin.answers:
-                        bot.notice(target, 'Please play a card.')
+                        bot.notice(target, '[*] Please play a card.')
                         self.plugin.show_hand(bot, target)
                     else:
-                        return bot.reply(comm, '{0} has already played their '
+                        return bot.reply(comm, '[*] {0} has already played their '
                                          'cards!'.format(target))
                 else:
-                    return bot.reply(comm, 'Players do not need to do anything'
+                    return bot.reply(comm, '[*] Players do not need to do anything'
                                      ' right now.')
 
 
