@@ -260,7 +260,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         cards = '. '.join((str(x + 1) + ": " + self.players[name][x]
                             for x in xrange(len(self.players[name]))))
 
-        bot.notice(name, "Your hand is: [" + cards + "]")
+        bot.notice(name, "Your hand is: [{0}]".format(cards))
 
     def show_answers(self, bot, comm):
         for i, player in enumerate(self.avail_players):
