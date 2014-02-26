@@ -507,7 +507,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             print "intercepted addcard command"
 
             desc = groups[0]
-            color = groups[1]
+            color = groups[1].replace('"', '')
 
             if color not in ['white', 'black']:
                 return bot.reply(comm, "That color card doesn't exist!")
