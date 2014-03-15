@@ -339,6 +339,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         short_desc = 'play - Plays a card from your hand.'
         long_desc = ('Play a card from your card with "!play <card #>".'
+                     '!play random - plays a random card.'
                      'Multiple cards may be played with "!play <card #> '
                      '<card #>".')
 
@@ -354,8 +355,18 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             try:
                 indices = map(int, groups[0].split(" "))
             except:
-                return bot.reply(comm, "[*] {0}, you didn't provide hand index(s) for cards!"
-                            .format(user))
+                indices = []
+                num = random.randint(0, len(self.plugin.players[user]))
+                while (num not in indices and
+                    groups[0] == 'random' and
+                    len(indices) < self.plugin.prompt.count("_" * 10)):
+
+                    indices += [num]
+                    num = random.randint(0, len(self.plugin.players[user]))
+
+                if not indices:
+                    return bot.reply(comm, "[*] {0}, you didn't provide hand index(s) for cards!"
+                                .format(user))
 
             if len(indices) != self.plugin.prompt.count("__________"):
                 return ("[*] {0}, you didn't provide the correct amount"
