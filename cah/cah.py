@@ -154,8 +154,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.white_discards = []
 
         # Fill up dealer_queue
-        if len(self.dealer_queue) < len(self.players):
-            self.dealer_queue += [p for p in self.players]
+        for p in self.players:
+            if p not in self.player_queue:
+                self.player_queue += [p]
 
         for p in self.player_queue:
             self.deal(p)
