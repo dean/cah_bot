@@ -22,10 +22,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     NUM_CARDS = 8
 
-    short_desc = 'Play the classic game Cards Against Humanity.'
-    long_desc = ('!join - Joins the game.\n'
+    long_desc = ('!j or !join - Joins the game.\n'
                  '!leave - Leaves the game.\n'
-                 '!play <card #> - Plays a card. May play more than one.\n'
+                 '!p or !play <card #> - Plays a card. May play more than one.\n'
                  '!winner <answer #> - Chooses a winner for a given prompt.'
                  '!mystatus - Shows information about yourself.')
 
@@ -54,7 +53,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         self.db = loader.db
         SQLAlchemyBase.metadata.create_all(self.db.engine)
 
-        flush = False
+        flush = True
         ct = self.db.session.query(CardTable)
 
         # Update db if it's empty.
@@ -288,7 +287,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         regex = r'^join ?$'
 
         name = 'join'
-        short_desc = 'join - Joins the game.'
+        short_desc = '!j or !join - Joins the game.'
         long_desc = 'Joins the current Cards Against Humanity game.'
 
         def command(self, bot, comm, groups):
@@ -319,7 +318,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         name = 'leave'
         regex = r'^leave ?$'
 
-        short_desc = 'leave - Leaves the game.'
+        short_desc = '!leave - Leaves the game.'
         long_desc = 'Leaves the current Cards Against Humanity game.'
 
         def command(self, bot, comm, groups):
@@ -335,9 +334,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     class Play(Command):
         name = 'play'
-        regex = r'^play (.*)'
+        regex = r'^[p|play] (.*)'
 
-        short_desc = 'play - Plays a card from your hand.'
+        short_desc = '!p or !play - Plays a card from your hand.'
         long_desc = ('Play a card from your card with "!play <card #>".'
                      '!play random - plays a random card.'
                      'Multiple cards may be played with "!play <card #> '
@@ -392,9 +391,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     class Winner(Command):
         name = 'winner'
-        regex = r'^winner (.*)'
+        regex = r'^[w|winner] (.*)'
 
-        short_desc = 'winner - Chooses a winner.'
+        short_desc = '!winner - Chooses a winner.'
         long_desc = ('Choose a winner from the available options with "!winner'
                      ' <card #>".')
 
@@ -408,13 +407,16 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 return bot.reply(comm, "[*] {0}, you may not choose the winner! "
                                     .format(user))
 
-            winner_re = r'^winner (\d)'
-            winner_ind = int(re.match(winner_re, comm['message'], re.S).group(1))
-            winner = ""
-            if winner_ind not in xrange(1, len(self.plugin.answers) + 1):
+            try:
+                winner_ind = int(groups[0])
+            except ValueError:
+                return bot.reply(comm, "[*] {0}, that is not a valid winner!".format(user))
+
+            if winner_ind < 1 or winner_ind > len(self.plugin.answers):
                 return bot.reply(comm, "[*] {0}, that answer doesn't exist!"
                             .format(user))
 
+            winner = ""
             winner = self.plugin.avail_players[winner_ind - 1]
             bot.reply(comm, "[*] {0}, you won this round! Congrats!".format(winner))
 
