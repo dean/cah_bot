@@ -334,7 +334,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     class Play(Command):
         name = 'play'
-        regex = r'^[p|play] (.*)'
+        regex = r'^(p|play) (.*)'
 
         short_desc = '!p or !play - Plays a card from your hand.'
         long_desc = ('Play a card from your card with "!play <card #>".'
@@ -352,12 +352,12 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 return bot.reply(comm, "[*] {0}, you are the dealer!".format(user))
 
             try:
-                indices = map(int, groups[0].split(" "))
+                indices = map(int, groups[1].split(" "))
             except:
                 indices = []
                 num = random.randint(0, len(self.plugin.players[user]))
                 while (num not in indices and
-                    groups[0] == 'random' and
+                    groups[1] == 'random' and
                     len(indices) < self.plugin.prompt.count("_" * 10)):
 
                     indices += [num]
@@ -391,7 +391,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     class Winner(Command):
         name = 'winner'
-        regex = r'^[w|winner] (.*)'
+        regex = r'^(w|winner) (.*)'
 
         short_desc = '!winner - Chooses a winner.'
         long_desc = ('Choose a winner from the available options with "!winner'
@@ -408,7 +408,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                                     .format(user))
 
             try:
-                winner_ind = int(groups[0])
+                winner_ind = int(groups[1])
             except ValueError:
                 return bot.reply(comm, "[*] {0}, that is not a valid winner!".format(user))
 
