@@ -99,6 +99,12 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 bot.reply(comm, "[*] There are less than 3 players playing "
                             "now. Waiting for more players...")
                 self.reset(bot, comm)
+            # Check to see if all cards are now submitted.
+            elif len(self.answers) == len(self.avail_players):
+                bot.reply(comm, "[*] All players cards are turned in.")
+                random.shuffle(self.avail_players)
+                self.show_answers(bot, comm)
+                self.state = "winner"
 
         elif self.state == "winner":
             if player == self.dealer:
@@ -106,8 +112,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 self.reset(bot, comm)
 
         bot.reply(comm, self.current_players())
-
-
 
     def give_point(self, user):
         player_str = self.get_player_str()
@@ -496,8 +500,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             # if 70% or more of voting players want to kick a player, they are
             # kicked
             if ((num_votes/float(num_voters)) * 100 ) > 70:
-                self.plugin.remove_player(bot, comm, target)
                 bot.reply(comm, "{0} has been kicked from the game!".format(target))
+                self.plugin.remove_player(bot, comm, target)
+
 
     class Hand(Command):
         name = 'hand'
