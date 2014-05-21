@@ -288,7 +288,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     class Join(Command):
         """ Join/Queue up for a game """
 
-        regex = r'^join ?$'
+        regex = r'^(j|join) ?$'
 
         name = 'join'
         short_desc = '!j or !join - Joins the game.'
