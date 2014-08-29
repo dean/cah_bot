@@ -652,7 +652,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     return bot.reply(comm, '[*] Players do not need to do anything'
                                      ' right now.')
 
-
     class Redraw(Command):
         name = 'redraw'
         regex = r'^redraw (.+)'
@@ -680,6 +679,28 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             bot.notice(user, 'Exchanged {0} card{1}.'.format(len(indices),
                         (len(indices) > 1) * 's'))
             self.plugin.show_hand(bot, user)
+
+    class GameStatus(Command):
+        name = 'gamestatus'
+        regex = r'^gamestatus'
+
+        short_desc = '!gamestatus - Sends you stats about the current game.
+
+        def command(self, bot, comm, groups):
+            print 'intercepted GameStatus command'
+
+            responses = []
+            responses.append('    Player    |    Played    |    Dealer    ')
+            responses.append('______________|______________|______________')
+            stats = '{:^14} {:^14} {:^14}'
+            for player in self.plugin.players:
+                resp = stats.format(player,
+                                    self.plugin.answers.get(player),
+                                    self.player == self.plugin.dealer)
+                responses.append(resp)
+
+            for resp in responses:
+                bot.notice(comm['user'], resp)
 
 
 class CardTable(SQLAlchemyBase):
