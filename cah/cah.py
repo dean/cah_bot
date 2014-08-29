@@ -22,6 +22,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
     priority = 1
 
     NUM_CARDS = 8
+    TIME_ALLOWED = 180 # 3 minutes.
+    TIMES_TO_CHECK = 3 # Check 3 times for now.
 
     long_desc = ('!j or !join - Joins the game.\n'
                  '!leave - Leaves the game.\n'
@@ -170,10 +172,19 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         else:
             self.change_state(bot, comm, 'join')
 
-    def start_afk_watcher(self, bot, comm, prompt, state, player):
-        if not self.should_kick(player, prompt, state):
-            return
-        else:
+    def start_afk_watcher(self, bot, comm, prompt, state, player, count=1):
+        if (state == self.state and prompt == self.prompt
+                and count < self.TIMES_TO_CHECK):
+            say_for_state = {
+                'play': 'Please play a card.',
+                'winner': 'Please pick a winner.',
+            }
+            bot.notice(player, say_for_state.get(state, 'Do something!'))
+            reactor.callLater(self.TIME_ALLOWED/self.TIMES_TO_CHECK,
+                              self.start_afk_watcher,
+                              bot, comm, prompt, state, player,
+                              count=count + 1)
+        elif self.should_kick(player, prompt, state):
             bot.reply(comm, '{0} has been kicked for taking too long.'.format(player))
             self.remove_player(bot, comm, player)
 
@@ -199,13 +210,15 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     def change_state(self, bot, comm, state):
         self.state = state
+        interval = self.TIME_ALLOWED/self.TIMES_TO_CHECK
         if state == 'play':
             for player in filter(lambda x: x != self.dealer, self.players):
-                reactor.callLater(180, self.start_afk_watcher, bot, comm,
-                                  str(self.prompt), str(self.state), player)
+                reactor.callLater(interval, self.start_afk_watcher,
+                                  bot, comm, str(self.prompt), str(self.state),
+                                  str(player))
         elif state == 'winner':
-            reactor.callLater(180, self.start_afk_watcher, bot, comm,
-                              str(self.prompt), str(self.state),
+            reactor.callLater(interval, self.start_afk_watcher,
+                              bot, comm, str(self.prompt), str(self.state),
                               str(self.dealer))
 
     def prep_play(self, bot, comm):
