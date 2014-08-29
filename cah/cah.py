@@ -1,14 +1,15 @@
+import time
 import random
 import re
 import urllib2
-
 from collections import defaultdict
 
 from hamper.interfaces import ChatCommandPlugin, Command
 from hamper.utils import ude
-
 from sqlalchemy import Column, Integer, String, Boolean, desc
 from sqlalchemy.ext.declarative import declarative_base
+from twisted.internet import reactor
+
 
 SQLAlchemyBase = declarative_base()
 
@@ -104,7 +105,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 bot.reply(comm, "[*] All players cards are turned in.")
                 random.shuffle(self.avail_players)
                 self.show_answers(bot, comm)
-                self.state = "winner"
+                self.change_state(bot, comm, 'winner')
 
         elif self.state == "winner":
             if player == self.dealer:
@@ -138,7 +139,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         # Fill white discard
         for p in self.avail_players:
-            print p
             for c in self.answers[p]:
                 self.white_discard.append(c)
 
@@ -168,11 +168,47 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         if len(self.players) > 2:
             self.prep_play(bot, comm)
         else:
-            self.state = "join"
+            self.change_state(bot, comm, 'join')
+
+    def start_afk_watcher(self, bot, comm, prompt, state, player):
+        if not self.should_kick(player, prompt, state):
+            return
+        else:
+            bot.reply(comm, '{0} has been kicked for taking too long.'.format(player))
+            self.remove_player(bot, comm, player)
+
+    def should_kick(self, player, prompt, state):
+        still_playing = self.players.get(player)
+        same_prompt = prompt == self.prompt
+
+        if state != self.state:
+            return False
+
+        if not still_playing:
+            return False
+
+        # Check to see if the same hand is going on.
+        if not same_prompt:
+            return False
+
+        if state == 'play':
+            return not self.answers.get(player)
+
+        elif state == 'winner':
+            return player == self.dealer
+
+    def change_state(self, bot, comm, state):
+        self.state = state
+        if state == 'play':
+            for player in filter(lambda x: x != self.dealer, self.players):
+                reactor.callLater(180, self.start_afk_watcher, bot, comm,
+                                  str(self.prompt), str(self.state), player)
+        elif state == 'winner':
+            reactor.callLater(180, self.start_afk_watcher, bot, comm,
+                              str(self.prompt), str(self.state),
+                              str(self.dealer))
 
     def prep_play(self, bot, comm):
-        self.state = "play"
-
         if not self.dealer_queue:
             self.dealer_queue += self.players
 
@@ -190,6 +226,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         # Show current hand to players
         for p in self.avail_players:
             self.show_hand(bot, p)
+
+        self.change_state(bot, comm, 'play')
+
 
     def colorize(self, txt):
         if txt == '_' * 10:
@@ -391,7 +430,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 bot.reply(comm, "[*] All players have turned in their cards.")
                 random.shuffle(self.plugin.avail_players)
                 self.plugin.show_answers(bot, comm)
-                self.plugin.state = "winner"
+                self.plugin.change_state(bot, comm, 'winner')
 
     class Winner(Command):
         name = 'winner'
