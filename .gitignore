@@ -3,3 +3,5 @@ MANIFEST
 /dist/
 /include/
 /lib/
+/build/
+/hamper.egg-info/
