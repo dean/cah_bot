@@ -201,10 +201,10 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         self.state = state
         if state == 'play':
             for player in filter(lambda x: x != self.dealer, self.players):
-                reactor.callLater(10, self.start_afk_watcher, bot, comm,
+                reactor.callLater(180, self.start_afk_watcher, bot, comm,
                                   str(self.prompt), str(self.state), player)
         elif state == 'winner':
-            reactor.callLater(10, self.start_afk_watcher, bot, comm,
+            reactor.callLater(180, self.start_afk_watcher, bot, comm,
                               str(self.prompt), str(self.state),
                               str(self.dealer))
 
