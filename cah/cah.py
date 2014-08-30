@@ -132,13 +132,10 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         player_str = self.get_player_str()
         winner = self.db.session.query(CAHTable).filter_by(game=player_str,
                                                       user=user).first()
-        if winner.score <= 0:
-            return False
-        try:
-            winner.score -= 1
-        except AttributeError:
+        if not winner or winner.score <= 0:
             return False
 
+        winner.score -= 1
         for player in self.players:
             if not self.db.session.query(CAHTable).filter_by(game=player_str, user=player).first():
                 self.db.session.add(CAHTable(user=player, game=player_str))
@@ -366,7 +363,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         def command(self, bot, comm, groups):
             print "intercepted play command!"
-            nums_re = '\d'
+
             user = comm['user']
             if user not in self.plugin.players:
                 return self.plugin.not_in.format(user)
@@ -608,12 +605,11 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         name = 'redraw'
         regex = r'^redraw (.+)'
 
-        short_desc = '!redraw - Provide indices to redraw for. Cost:  1 point.'
+        short_desc = '!redraw - Provide indices to redraw for. Cost: 1 point.'
 
         def command(self, bot, comm, groups):
             print 'intercepted redraw command'
 
-            nums_re = '\d'
             user = comm['user']
             if user not in self.plugin.players:
                 return self.plugin.not_in.format(user)
@@ -621,15 +617,13 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             if not self.plugin.take_point(user):
                 return bot.notice(user, "You don't have enough points to do that.")
 
-            if not groups:
-                self.white_discard += self.players[player]
-                self.players[player] = []
-            else:
-                indices = set(map(int, groups[0].split(" ")))
+            indices = set(map(int, groups[0].split(" ")))
 
-                # Don't change index of cards that are being removed..
-                for index in reversed(sorted(indices, key=lambda x: x)):
-                    self.plugin.players[user].pop(index - 1)
+            # Don't change index of cards that are being removed..
+            for index in reversed(sorted(indices, key=lambda x: x)):
+                exchange = self.plugin.players[user].pop(index - 1)
+                self.plugin.white_discard.append(exchange)
+
             self.plugin.deal(user)
             bot.notice(user, 'Exchanged {0} card{1}.'.format(len(indices),
                         (len(indices) > 1) * 's'))
