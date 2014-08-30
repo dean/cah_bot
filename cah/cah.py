@@ -286,6 +286,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                             for x in xrange(num_top)])
         bot.reply(comm, scores)
 
+    def get_score(self, player):
+        player_str = self.get_player_str()
+        player_obj = (self.db.session.query(CAHTable)
+                        .filter_by(game=player_str)
+                        .filter_by(user=player)
+                        .first())
+
+        if player_obj:
+            return player_obj.score
+        return 0
+
     def flush_db(self):
         """
         Clear out old cards, and bring in new ones.
@@ -684,19 +695,21 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         name = 'gamestatus'
         regex = r'^gamestatus'
 
-        short_desc = '!gamestatus - Sends you stats about the current game.
+        short_desc = '!gamestatus - Sends you stats about the current game.'
 
         def command(self, bot, comm, groups):
             print 'intercepted GameStatus command'
 
             responses = []
-            responses.append('    Player    |    Played    |    Dealer    ')
-            responses.append('______________|______________|______________')
-            stats = '{:^14} {:^14} {:^14}'
-            for player in self.plugin.players:
+            responses.append('    Player    |    Played    |    Dealer    |    Score')
+            responses.append('______________|______________|______________|____________')
+            stats = '{:^14} {:^14} {:^14} {:^14}'
+            player_scores = [(p, self.plugin.get_score(p)) for p in self.plugin.players]
+            for player, score in sorted(lambda x: x[1], player_scores):
                 resp = stats.format(player,
                                     self.plugin.answers.get(player),
-                                    self.player == self.plugin.dealer)
+                                    player == self.plugin.dealer,
+                                    score)
                 responses.append(resp)
 
             for resp in responses:
