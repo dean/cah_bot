@@ -704,11 +704,13 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             responses.append('    Player    |    Played    |    Dealer    |    Score')
             responses.append('______________|______________|______________|____________')
             stats = '{:^14} {:^14} {:^14} {:^14}'
-            player_scores = [(p, self.plugin.get_score(p)) for p in self.plugin.players]
-            for player, score in sorted(lambda x: x[1], player_scores):
+            player_scores = [(self.plugin.get_score(p), p) for p in self.plugin.players]
+            player_scores.sort(reverse=True)
+            for score, player in player_scores:
+                # The str(bool) is a hack around formating in python kinda sucking.
                 resp = stats.format(player,
-                                    self.plugin.answers.get(player),
-                                    player == self.plugin.dealer,
+                                    str(bool(self.plugin.answers.get(player))),
+                                    str(player == self.plugin.dealer),
                                     score)
                 responses.append(resp)
 
