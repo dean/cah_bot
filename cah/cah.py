@@ -179,6 +179,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 self.player_queue += [p]
 
         for p in self.player_queue:
+            if p not in self.players:
+                bot.reply(comm, '{0} has joined the game!'.format(p))
             self.deal(p)
         del(self.player_queue[:])
 
