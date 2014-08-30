@@ -286,6 +286,17 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                             for x in xrange(num_top)])
         bot.reply(comm, scores)
 
+    def get_score(self, player):
+        player_str = self.get_player_str()
+        player_obj = (self.db.session.query(CAHTable)
+                        .filter_by(game=player_str)
+                        .filter_by(user=player)
+                        .first())
+
+        if player_obj:
+            return player_obj.score
+        return 0
+
     def flush_db(self):
         """
         Clear out old cards, and bring in new ones.
@@ -652,7 +663,6 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                     return bot.reply(comm, '[*] Players do not need to do anything'
                                      ' right now.')
 
-
     class Redraw(Command):
         name = 'redraw'
         regex = r'^redraw (.+)'
@@ -680,6 +690,32 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             bot.notice(user, 'Exchanged {0} card{1}.'.format(len(indices),
                         (len(indices) > 1) * 's'))
             self.plugin.show_hand(bot, user)
+
+    class GameStatus(Command):
+        name = 'gamestatus'
+        regex = r'^gamestatus'
+
+        short_desc = '!gamestatus - Sends you stats about the current game.'
+
+        def command(self, bot, comm, groups):
+            print 'intercepted GameStatus command'
+
+            responses = []
+            responses.append('    Player    |    Played    |    Dealer    |    Score')
+            responses.append('______________|______________|______________|____________')
+            stats = '{:^14} {:^14} {:^14} {:^14}'
+            player_scores = [(self.plugin.get_score(p), p) for p in self.plugin.players]
+            player_scores.sort(reverse=True)
+            for score, player in player_scores:
+                # The str(bool) is a hack around formating in python kinda sucking.
+                resp = stats.format(player,
+                                    str(bool(self.plugin.answers.get(player))),
+                                    str(player == self.plugin.dealer),
+                                    score)
+                responses.append(resp)
+
+            for resp in responses:
+                bot.notice(comm['user'], resp)
 
 
 class CardTable(SQLAlchemyBase):
