@@ -128,6 +128,24 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
         self.db.session.commit()
 
+    def take_point(self, user):
+        player_str = self.get_player_str()
+        winner = self.db.session.query(CAHTable).filter_by(game=player_str,
+                                                      user=user).first()
+        if winner.score <= 0:
+            return False
+        try:
+            winner.score -= 1
+        except AttributeError:
+            return False
+
+        for player in self.players:
+            if not self.db.session.query(CAHTable).filter_by(game=player_str, user=player).first():
+                self.db.session.add(CAHTable(user=player, game=player_str))
+
+        self.db.session.commit()
+        return True
+
     def deal(self, user):
         while len(self.players[user]) < self.NUM_CARDS:
             self.players[user].append(self.whites.pop(0))
@@ -599,6 +617,9 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             user = comm['user']
             if user not in self.plugin.players:
                 return self.plugin.not_in.format(user)
+
+            if not self.plugin.take_point(user):
+                return bot.notice(user, "You don't have enough points to do that.")
 
             if not groups:
                 self.white_discard += self.players[player]
