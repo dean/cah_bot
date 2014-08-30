@@ -590,7 +590,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
         name = 'redraw'
         regex = r'^redraw (.+)'
 
-        short_desc = '!redraw - Provide indices to redraw for. Cost:  1 point.
+        short_desc = '!redraw - Provide indices to redraw for. Cost:  1 point.'
 
         def command(self, bot, comm, groups):
             print 'intercepted redraw command'
@@ -604,8 +604,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
                 self.white_discard += self.players[player]
                 self.players[player] = []
             else:
-                indices = set(map(int, groups[1].split(" ")))
-                            if len(indices) != self.plugin.prompt.count("__________"):
+                indices = set(map(int, groups[0].split(" ")))
 
                 # Don't change index of cards that are being removed..
                 for index in reversed(sorted(indices, key=lambda x: x)):
@@ -613,6 +612,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
             self.plugin.deal(user)
             bot.notice(user, 'Exchanged {0} card{1}.'.format(len(indices),
                         (len(indices) > 1) * 's'))
+            self.plugin.show_hand(bot, user)
 
 
 class CardTable(SQLAlchemyBase):
