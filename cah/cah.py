@@ -411,7 +411,7 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
             if (user not in self.plugin.players and
                     user not in self.plugin.player_queue):
-                return self.plugin.not_in.format(user)
+                return bot.reply(comm, self.plugin.not_in.format(user))
 
             bot.reply(comm, "[*] {0} has left the game!".format(user))
             self.plugin.remove_player(bot, comm, user)
