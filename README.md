@@ -1,5 +1,5 @@
 Card Against Hamper - A text-based plugin for [hamper][hamper_repo] that acts as a Cards 
-Against Humanity state machine..
+Against Humanity state machine.
 
 Installation
 ============
