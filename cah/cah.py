@@ -191,7 +191,8 @@ class CardsAgainstHumanity(ChatCommandPlugin):
 
     def start_afk_watcher(self, bot, comm, prompt, state, player, count=1):
         if (state == self.state and prompt == self.prompt
-                and count < self.TIMES_TO_CHECK):
+                and count < self.TIMES_TO_CHECK
+                and player not in self.answers):
             say_for_state = {
                 'play': 'Please play a card.',
                 'winner': 'Please pick a winner.',
